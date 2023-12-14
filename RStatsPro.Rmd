@@ -1,0 +1,321 @@
+---
+title: "Term Project"
+author: "Joshua Larkai - Gideon Asare"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Term Project- CE 566
+## Student Organization and Ethical Development
+## Term Project- CE 566
+## Student Organization and Ethical Development
+## Introduction  
+ Professional engineers shoulder personal and professional ethical responsibilities toward society (1). Studies on ethical and moral development have illustrated that the principal benefit of education in professional engineering ethics is to fortify students' inclination toward ethical behavior (2,1). The Accreditation Board for Engineering and Technology (ABET) has recently underscored the significance of comprehensive thinking among students and crafted standards, specifically integrating considerations for diversity, equity, and inclusion (3). 
+While moral identity development has garnered attention in psychology (4), the influence of engineering ethics education on students’ moral development has seen limited exploration (5,1). Abaté (2011) argues that if “teaching engineering ethics” molds students into moral citizens, it should not be taught. This standpoint often translates into ethics education prioritizing abstract ethical frameworks and moral justification. Conversely, Lynch (1997) cautions that such a theoretical approach must be embedded within engineering activities to effectively instruct engineering students. Trbusic (2014) observes a notable absence of critical action —identifying and challenging oppressive conditions — in civil engineering education programs. Nonetheless, students might develop critical action attitudes, or ways of thinking related to recognizing and acting against oppression, if allowed to learn about such action from engineering educators and student organizations, who are well positioned to cultivate critical thinking and attitudes demonstrative of critical action. 
+This study seeks to understand how educational initiatives, including student organizations, facilitate and support engineering students' moral development. In Fall 2020, we conducted a web-based survey targeting undergraduate students from two universities. To evaluate their ethical growth, we employed the Defining Issues Test-2 (cite Rest et all 1999). Using the Defining Issues Test-2 outcomes, we sought to answer the research query: Does a student's ethical progression correlate with their organization affiliation?   
+
+
+:
+
+```{r echo=FALSE}
+library(tidyverse)
+library(readr)
+
+SOdataset <- read.csv('https://raw.githubusercontent.com/joshuamensah-larkai/SOdataset/main/S.O%20Dataset.csv')
+
+names(SOdataset)
+View(SOdataset)
+```
+
+## Summary Statistics
+
+You can also embed plots, for example:
+
+```{r echo=FALSE}
+
+SOdataset <- SOdataset %>% rename(PI = `Personal.Interest.......Stage.2.3.`)
+SOdataset <- SOdataset %>% rename(MNS4 = `Maintain.Norms.........Stage.4.`)
+SOdataset <- SOdataset %>% rename(Race = `Race.White`)
+
+# quick summary of DV
+
+summary(SOdataset$PI)
+summary(SOdataset$MNS4) 
+summary(SOdataset$N2SCORE)
+
+
+
+```
+
+
+```{r echo=FALSE}
+#calculate summary statistics for each numeric variable in data frame
+SOdataset %>% summarise_if(is.numeric,
+                     list(mean = mean,
+                          stdev = sd))
+```
+
+
+```{r echo=FALSE}
+
+
+model <- lm(PI ~ Competition + Age + Gender + Race + Wealthy, data = SOdataset)
+model1 <- lm(PI ~ Competition + Race + Wealthy, data = SOdataset)
+
+model_1 <- lm(MNS4 ~ Competition * Gender + Competition + Age + Gender + Wealthy, data = SOdataset)
+model_2 <- lm(MNS4 ~ Competition * Race + Competition + Age + Race + Wealthy, data = SOdataset)
+
+model_3 <- lm(N2SCORE ~ Competition * Race + Competition + Age + Race, data = SOdataset)
+model_4 <- lm(N2SCORE ~ Competition * Gender + Competition + Age + Gender + Race, data = SOdataset)
+
+# Summary of the model
+summary(model)
+summary(model1)
+summary(model_1)
+summary(model_2)
+summary(model_3)
+summary(model_4)
+
+```
+
+
+```{r echo=FALSE}
+##The residuals should be normally distributed.
+
+# Histogram of residuals
+hist(resid(model))
+hist(resid(model_1))
+hist(resid(model_2))
+hist(resid(model_3))
+hist(resid(model_4))
+
+# Q-Q plot of residuals Ideal Scenario: Points lie approximately along the reference line.
+# Issues to Look For: Systematic deviations from the line, especially at the ends, indicate non-normality.
+qqnorm(resid(model))
+qqline(resid(model))
+
+qqnorm(resid(model1))
+qqline(resid(model1))
+
+qqnorm(resid(model_1))
+qqline(resid(model_1))
+
+qqnorm(resid(model_2))
+qqline(resid(model_2))
+
+qqnorm(resid(model_3))
+qqline(resid(model_3))
+
+qqnorm(resid(model_4))
+qqline(resid(model_4))
+
+
+# Shapiro-Wilk test
+shapiro.test(resid(model))
+shapiro.test(resid(model1))
+shapiro.test(resid(model_1))
+shapiro.test(resid(model_2))
+shapiro.test(resid(model_3))
+shapiro.test(resid(model_4))
+
+```
+
+```{r echo=FALSE}
+
+##Residuals vs Fitted Values Plot: Helps to check if residuals have constant variance across different fitted values.The residuals should show no clear pattern when plotted against fitted values.
+
+##The residuals should have a constant variance (homoscedasticity).
+
+plot(fitted(model), resid(model))
+abline(h = 0, col = "red")
+
+plot(fitted(model1), resid(model1))
+abline(h = 0, col = "red")
+
+plot(fitted(model_1), resid(model_1))
+abline(h = 0, col = "red")
+
+plot(fitted(model_2), resid(model_2))
+abline(h = 0, col = "red")
+
+plot(fitted(model_3), resid(model_3))
+abline(h = 0, col = "red")
+
+plot(fitted(model_4), resid(model_4))
+abline(h = 0, col = "red")
+
+```
+
+```{r echo=FALSE}
+##There shouldn't be multicollinearity among predictors.
+
+library(car)
+vif(model)
+vif(model1)
+vif(model_1)
+vif(model_2)
+vif(model_3)
+vif(model_4)
+
+```
+
+
+```{r echo=FALSE}
+# Create a data frame with a range of Race values
+Race_range <- data.frame(Race = seq(min(SOdataset$Race), max(SOdataset$Race), length.out = 200))
+
+# Assuming Competition, Gender, Race, and Wealthy are other predictors
+# Set these variables to their means (for continuous) or modes (for categorical)
+Race_range$Competition <- mean(SOdataset$Competition)  # Replace with mode if categorical
+Race_range$Gender <- mean(SOdataset$Gender)            # Replace with mode if categorical
+Race_range$Age <- mean(SOdataset$Age)                # Replace with mode if categorical
+Race_range$Wealthy <- mean(SOdataset$Wealthy)
+
+# Predict with confidence intervals
+predictions_conf <- predict(model1, newdata = Race_range, interval = "confidence")
+
+
+# Plot
+plot(SOdataset$Competition, SOdataset$PI, main = "Confidence Interval for Race", 
+     xlab = "Race", ylab = "PI", pch = 19, col = "blue")
+lines(Race_range$Competition, predictions_conf[, "fit"], col = "red", lwd = 2)
+matlines(Race_range$Competition, predictions_conf[, c("lwr", "upr")], col = "red", lty = 2)
+
+
+```
+
+```{r echo=FALSE}
+# Create a data frame with a range of Race values
+Race_range <- data.frame(Race = seq(min(SOdataset$Race), max(SOdataset$Race), length.out = 200))
+
+# Assuming Competition, Gender, Race, and Wealthy are other predictors
+# Set these variables to their means (for continuous) or modes (for categorical)
+Race_range$Competition <- mean(SOdataset$Competition)  # Replace with mode if categorical
+Race_range$Gender <- mean(SOdataset$Gender)            # Replace with mode if categorical
+Race_range$Age <- mean(SOdataset$Age)                # Replace with mode if categorical
+Race_range$Wealthy <- mean(SOdataset$Wealthy)
+
+# Predict with confidence intervals
+predictions_conf <- predict(model_2, newdata = Race_range, interval = "confidence")
+
+
+# Plot
+plot(SOdataset$Competition, SOdataset$MNS4, main = "Confidence Interval for Race", 
+     xlab = "Race", ylab = "MNS4", pch = 19, col = "blue")
+lines(Race_range$Competition, predictions_conf[, "fit"], col = "red", lwd = 2)
+matlines(Race_range$Competition, predictions_conf[, c("lwr", "upr")], col = "red", lty = 2)
+
+
+
+
+```
+
+```{r}
+
+# Create a data frame with a range of Race values
+Race_range <- data.frame(Race = seq(min(SOdataset$Race), max(SOdataset$Race), length.out = 200))
+
+# Assuming Competition, Gender, Race, and Wealthy are other predictors
+# Set these variables to their means (for continuous) or modes (for categorical)
+Race_range$Competition <- mean(SOdataset$Competition)  # Replace with mode if categorical
+Race_range$Gender <- mean(SOdataset$Gender)            # Replace with mode if categorical
+Race_range$Age <- mean(SOdataset$Age)                # Replace with mode if categorical
+Race_range$Wealthy <- mean(SOdataset$Wealthy)
+
+# Predict with confidence intervals
+predictions_conf <- predict(model_3, newdata = Race_range, interval = "confidence")
+
+
+# Plot
+plot(SOdataset$Competition, SOdataset$N2SCORE, main = "Confidence Interval for Race", 
+     xlab = "Race", ylab = "N2SCORE", pch = 19, col = "blue")
+lines(Race_range$Competition, predictions_conf[, "fit"], col = "red", lwd = 2)
+matlines(Race_range$Competition, predictions_conf[, c("lwr", "upr")], col = "red", lty = 2)
+
+
+
+```
+```{r}
+
+# Create a data frame with a range of Gender values
+Gender_range <- data.frame(Gender = seq(min(SOdataset$Gender), max(SOdataset$Gender), length.out = 200))
+
+# Assuming Competition, Gender, Gender, and Wealthy are other predictors
+# Set these variables to their means (for continuous) or modes (for categorical)
+Gender_range$Competition <- mean(SOdataset$Competition)  # Replace with mode if categorical
+Gender_range$Race <- mean(SOdataset$Gender)            # Replace with mode if categorical
+Gender_range$Age <- mean(SOdataset$Age)                # Replace with mode if categorical
+Gender_range$Wealthy <- mean(SOdataset$Wealthy)
+
+# Predict with confidence intervals
+predictions_conf <- predict(model, newdata = Gender_range, interval = "confidence")
+
+
+# Plot
+plot(SOdataset$Competition, SOdataset$PI, main = "Confidence Interval for Gender", 
+     xlab = "Gender", ylab = "PI", pch = 19, col = "blue")
+lines(Gender_range$Competition, predictions_conf[, "fit"], col = "red", lwd = 2)
+matlines(Gender_range$Competition, predictions_conf[, c("lwr", "upr")], col = "red", lty = 2)
+
+
+
+```
+
+
+```{r}
+
+# Create a data frame with a range of Gender values
+Gender_range <- data.frame(Gender = seq(min(SOdataset$Gender), max(SOdataset$Gender), length.out = 200))
+
+# Assuming Competition, Gender, Gender, and Wealthy are other predictors
+# Set these variables to their means (for continuous) or modes (for categorical)
+Gender_range$Competition <- mean(SOdataset$Competition)  # Replace with mode if categorical
+Gender_range$Race <- mean(SOdataset$Gender)            # Replace with mode if categorical
+Gender_range$Age <- mean(SOdataset$Age)                # Replace with mode if categorical
+Gender_range$Wealthy <- mean(SOdataset$Wealthy)
+
+# Predict with confidence intervals
+predictions_conf <- predict(model_1, newdata = Gender_range, interval = "confidence")
+
+
+# Plot
+plot(SOdataset$Competition, SOdataset$MNS4, main = "Confidence Interval for Gender", 
+     xlab = "Gender", ylab = "MNS4", pch = 19, col = "blue")
+lines(Gender_range$Competition, predictions_conf[, "fit"], col = "red", lwd = 2)
+matlines(Gender_range$Competition, predictions_conf[, c("lwr", "upr")], col = "red", lty = 2)
+
+
+
+```
+
+
+```{r}
+
+# Create a data frame with a range of Gender values
+Gender_range <- data.frame(Gender = seq(min(SOdataset$Gender), max(SOdataset$Gender), length.out = 200))
+
+# Assuming Competition, Gender, Gender, and Wealthy are other predictors
+# Set these variables to their means (for continuous) or modes (for categorical)
+Gender_range$Competition <- mean(SOdataset$Competition)  # Replace with mode if categorical
+Gender_range$Race <- mean(SOdataset$Race)            # Replace with mode if categorical
+Gender_range$Age <- mean(SOdataset$Age)                # Replace with mode if categorical
+Gender_range$Wealthy <- mean(SOdataset$Wealthy)
+
+# Predict with confidence intervals
+predictions_conf <- predict(model_4, newdata = Gender_range, interval = "confidence")
+
+
+# Plot
+plot(SOdataset$Competition, SOdataset$N2SCORE, main = "Confidence Interval for Gender", 
+     xlab = "Gender", ylab = "N2SCORE", pch = 19, col = "blue")
+lines(Gender_range$Competition, predictions_conf[, "fit"], col = "red", lwd = 2)
+matlines(Gender_range$Competition, predictions_conf[, c("lwr", "upr")], col = "red", lty = 2)
+
+
+
+```
+
